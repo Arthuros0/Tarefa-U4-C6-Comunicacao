@@ -33,7 +33,15 @@ void desenha_frame(const uint32_t matriz[10][25],uint8_t frame){
     
 }
 
-void setup_led_matrix() {
+void apaga_matriz(){
+    for (uint8_t i = 0; i < NUM_PIXELS; i++)
+    {
+        uint8_t pos=obter_index(i);         
+        pio_sm_put_blocking(pio0,sm,0x00000000);
+    }
+}
+
+void init_led_matrix() {
     bool ok;
     // Configura o clock para 133 MHz
     ok = set_sys_clock_khz(133000, false);

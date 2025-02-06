@@ -17,7 +17,9 @@ uint8_t obter_index(uint8_t i);
 
 void desenha_frame(const uint32_t matriz[10][25],uint8_t frame);
 
-void setup_led_matrix();
+void init_led_matrix();
+
+void apaga_matriz();
 
 extern const uint32_t numeros[10][25];
 #endif
