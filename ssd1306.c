@@ -1,6 +1,13 @@
 #include "ssd1306.h"
 #include "font.h"
 
+void init_i2c_pins(uint8_t sda, uint8_t scl){
+  gpio_set_function(sda, GPIO_FUNC_I2C);
+  gpio_set_function(scl, GPIO_FUNC_I2C);
+  gpio_pull_up(sda);
+  gpio_pull_down(scl);
+}
+
 void ssd1306_init(ssd1306_t *ssd, uint8_t width, uint8_t height, bool external_vcc, uint8_t address, i2c_inst_t *i2c) {
   ssd->width = width;
   ssd->height = height;
@@ -77,12 +84,6 @@ void ssd1306_pixel(ssd1306_t *ssd, uint8_t x, uint8_t y, bool value) {
     ssd->ram_buffer[index] &= ~(1 << pixel);
 }
 
-/*
-void ssd1306_fill(ssd1306_t *ssd, bool value) {
-  uint8_t byte = value ? 0xFF : 0x00;
-  for (uint8_t i = 1; i < ssd->bufsize; ++i)
-    ssd->ram_buffer[i] = byte;
-}*/
 
 void ssd1306_fill(ssd1306_t *ssd, bool value) {
     // Itera por todas as posições do display
@@ -164,6 +165,8 @@ void ssd1306_draw_char(ssd1306_t *ssd, char c, uint8_t x, uint8_t y)
   }else  if (c >= '0' && c <= '9')
   {
     index = (c - '0' + 1) * 8; // Adiciona o deslocamento necessário
+  }else if(c >= 'a' && c <= 'z' ){
+    index=(c - 'a' + 37) * 8;
   }
   
   for (uint8_t i = 0; i < 8; ++i)
