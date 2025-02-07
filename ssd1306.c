@@ -1,6 +1,14 @@
 #include "ssd1306.h"
 #include "font.h"
 
+void init_display(ssd1306_t *ssd,uint8_t endereco,i2c_inst_t *i2c){
+  ssd1306_init(ssd,WIDTH,HEIGHT,false,endereco,i2c);
+  ssd1306_config(ssd);
+  ssd1306_send_data(ssd);
+  ssd1306_fill(ssd, false);
+  ssd1306_send_data(ssd);
+}
+
 void init_i2c_pins(uint8_t sda, uint8_t scl){
   gpio_set_function(sda, GPIO_FUNC_I2C);
   gpio_set_function(scl, GPIO_FUNC_I2C);
