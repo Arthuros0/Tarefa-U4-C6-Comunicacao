@@ -1,6 +1,33 @@
 #include "ssd1306.h"
 #include "font.h"
 
+void init_display(ssd1306_t *ssd,uint8_t endereco,i2c_inst_t *i2c){
+  ssd1306_init(ssd,WIDTH,HEIGHT,false,endereco,i2c);
+  ssd1306_config(ssd);
+  ssd1306_send_data(ssd);
+  ssd1306_fill(ssd, false);
+  ssd1306_send_data(ssd);
+}
+
+void boas_vindas(ssd1306_t *ssd){
+  ssd1306_draw_string(ssd,"Bem vindo! ; ",4,15); 
+  ssd1306_draw_string(ssd,"0 a 9: matriz",4,25);
+  ssd1306_draw_string(ssd,"Botao A:Verde",4,35);
+  ssd1306_draw_string(ssd,"Botao B:Azul",4,45);
+  ssd1306_send_data(ssd); //Atualiza o display
+}
+
+bool input_invalido(ssd1306_t *ssd, char c){
+  if(!((c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || (c >= 'a' && c <= 'z') || (c == ':' || c == ';') || (c == '!') || (c == ' '))){
+    ssd1306_fill(ssd,false); //Limpa display
+    ssd1306_rect(ssd,3,3,122,58,true,false); //Desenha retângulo
+    ssd1306_draw_string(ssd,"Input invalido",6,30);
+    ssd1306_send_data(ssd);
+    return false;
+  }
+  return true;
+}
+
 void init_i2c_pins(uint8_t sda, uint8_t scl){
   gpio_set_function(sda, GPIO_FUNC_I2C);
   gpio_set_function(scl, GPIO_FUNC_I2C);
@@ -167,6 +194,10 @@ void ssd1306_draw_char(ssd1306_t *ssd, char c, uint8_t x, uint8_t y)
     index = (c - '0' + 1) * 8; // Adiciona o deslocamento necessário
   }else if(c >= 'a' && c <= 'z' ){
     index=(c - 'a' + 37) * 8;
+  }else if(c == ':' || c == ';'){
+    index=(c - ':' + 63) * 8;
+  }else if(c == '!'){
+    index=(c - '!' + 65) * 8;
   }
   
   for (uint8_t i = 0; i < 8; ++i)

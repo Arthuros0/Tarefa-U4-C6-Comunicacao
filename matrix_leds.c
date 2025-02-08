@@ -54,6 +54,7 @@ void init_led_matrix() {
     uint offset = pio_add_program(pio, &pio_matrix_program);
     uint sm = pio_claim_unused_sm(pio, true);
     pio_matrix_program_init(pio, sm, offset, OUT_PIN);
+    apaga_matriz();
 }
 
 const uint32_t numeros[10][25] = {
