@@ -38,6 +38,9 @@ void init_i2c_pins(uint8_t sda, uint8_t scl);
 void init_display(ssd1306_t *ssd,uint8_t endereco,i2c_inst_t *i2c);
 void boas_vindas(ssd1306_t *ssd);
 bool input_invalido(ssd1306_t *ssd, char c);
+void uart_comm(ssd1306_t *ssd);
+void mensagem_serial(ssd1306_t *ssd);
+void mensagem_caracter(ssd1306_t *ssd,bool cor, char caracter);
 
 void ssd1306_init(ssd1306_t *ssd, uint8_t width, uint8_t height, bool external_vcc, uint8_t address, i2c_inst_t *i2c);
 void ssd1306_config(ssd1306_t *ssd);

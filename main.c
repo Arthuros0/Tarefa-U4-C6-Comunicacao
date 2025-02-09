@@ -4,6 +4,7 @@
 #include "ssd1306.h"
 #include "font.h"
 #include "matrix_leds.h"
+#include "hardware/timer.h"
 
 #define I2C_PORT i2c1
 #define I2C_SDA 14
@@ -20,10 +21,14 @@ ssd1306_t ssd; //Váriavel do tipo ssd1306_t, armazena as informações relacion
 
 void init_button(uint8_t pin); //Função de inicialização dos botões
 void button_callback(uint gpio,uint32_t events); //Função de callback dos botões
+bool usb_comm_callback(struct repeating_timer *t);
 
 absolute_time_t button_debounce; //Váriavel que armazena o intervalo de debounce do botão
+absolute_time_t serial_debounce;
 
 bool cor=true;      //Boleano usado para piscar o retangulo do display
+char caracter;      //Váriavel que armazena o caracter digitado
+bool serial=true;
 
 int main(){
 
@@ -47,38 +52,42 @@ int main(){
   gpio_set_irq_enabled_with_callback(BUTTON_B,GPIO_IRQ_EDGE_FALL,true,&button_callback);
 
   button_debounce=delayed_by_ms(get_absolute_time(), 200); //Inicialização da váriavel de debounce
+  serial_debounce=delayed_by_ms(get_absolute_time(), 2000); //Inicialização da váriavel de debounce do serial
+
+  struct repeating_timer timer;
 
   bool matriz=false;  //Boleano usado para evitar sucessivas chamadas da função apaga_matriz()
-  char caracter;      //Váriavel que armazena o caracter digitado
   bool input=true;    //Boleano usado para verificar se entrada é válida
 
+  uart_comm(&ssd);
   boas_vindas(&ssd);
+  add_repeating_timer_ms(1000,usb_comm_callback,false,&timer);
   
   while (1)
   {
+    //uart_comm(&ssd);
     cor=!cor; //Alterna valor de cor
-
-    scanf("%c",&caracter);
-    printf("%c\n", caracter);
-    button_debounce=delayed_by_ms(get_absolute_time(), 100); //Debounce para evitar interrupção enquanto display é preenchido
     
-    input=input_invalido(&ssd,caracter); //Caso o input seja válido o caracter é impresso normalmente, caso não, há uma mensagem de input invalido
-    if(input){
-      //Verifica se caracter é um número e caso for imprime na matriz, se não for verifica
-      //se matriz está acesa e apaga caso esteja
-      if(caracter >= '0' && caracter <= '9'){
-        desenha_frame(numeros,caracter-48);
-        matriz=true;
-      }else if(matriz){
-        apaga_matriz();
-        matriz=false;
-      }
+    if(stdio_usb_connected()){
+      scanf("%c",&caracter);
+      printf("%c\n", caracter);
+      button_debounce=delayed_by_ms(get_absolute_time(), 100); //Debounce para evitar interrupção enquanto display é preenchido
+      
+      input=input_invalido(&ssd,caracter); //Caso o input seja válido o caracter é impresso normalmente, caso não, há uma mensagem de input invalido
+      if(input){
+        //Verifica se caracter é um número e caso for imprime na matriz, se não for verifica
+        //se matriz está acesa e apaga caso esteja
+        if(caracter >= '0' && caracter <= '9'){
+          desenha_frame(numeros,caracter-48);
+          matriz=true;
+        }else if(matriz){
+          apaga_matriz();
+          matriz=false;
+        }
 
-      ssd1306_fill(&ssd,!cor); //Limpa display
-      ssd1306_rect(&ssd,3,3,122,58,cor,!cor); //Desenha retângulo
-      ssd1306_draw_string(&ssd,"Caracter: ",8,30); 
-      ssd1306_draw_char(&ssd,caracter,90,30); //Imprime o caracter lido
-      ssd1306_send_data(&ssd); //Atualiza o display
+        mensagem_caracter(&ssd,cor,caracter);
+
+      }
     }
     sleep_ms(50); 
   }
@@ -117,6 +126,20 @@ void button_callback(uint gpio,uint32_t events){
     printf("\n");
     ssd1306_send_data(&ssd); //Atualiza display
     button_debounce=delayed_by_ms(get_absolute_time(), 200); //Atualiza debounce
+    serial_debounce=delayed_by_ms(get_absolute_time(), 3000); //Permite que a mensagem de status do led fique ativa por 3seg se o serial estiver desconectado
   }
   
+}
+
+bool usb_comm_callback(struct repeating_timer *t){
+  if(!stdio_usb_connected()){
+    if(time_reached(serial_debounce)){
+      mensagem_serial(&ssd); //Informa que é preciso iniciar o caracter
+      serial=false;
+    }
+  }else if(!serial){ //Caso o serial volte imprime a mensagem do caracter
+    serial=true;
+    mensagem_caracter(&ssd, cor, caracter);
+  }
+  return 1;
 }

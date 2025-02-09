@@ -1,6 +1,8 @@
 #include "ssd1306.h"
 #include "font.h"
 
+extern absolute_time_t serial_debounce;
+
 void init_display(ssd1306_t *ssd,uint8_t endereco,i2c_inst_t *i2c){
   ssd1306_init(ssd,WIDTH,HEIGHT,false,endereco,i2c);
   ssd1306_config(ssd);
@@ -26,6 +28,35 @@ bool input_invalido(ssd1306_t *ssd, char c){
     return false;
   }
   return true;
+}
+
+void mensagem_serial(ssd1306_t *ssd){
+  ssd1306_fill(ssd,false); //Limpa display
+  ssd1306_rect(ssd,3,3,122,58,true,false); //Desenha retângulo
+  ssd1306_draw_string(ssd,"Inicie serial",6,30);
+  ssd1306_send_data(ssd);
+}
+
+void mensagem_caracter(ssd1306_t *ssd,bool cor, char caracter){
+  ssd1306_fill(ssd,!cor); //Limpa display
+  ssd1306_rect(ssd,3,3,122,58,cor,!cor); //Desenha retângulo
+  ssd1306_draw_string(ssd,"Caracter: ",8,30); 
+  ssd1306_draw_char(ssd,caracter,90,30); //Imprime o caracter lido
+  ssd1306_send_data(ssd); //Atualiza o display
+}
+
+void uart_comm(ssd1306_t *ssd){
+  if(!stdio_usb_connected()){
+    while(!stdio_usb_connected()){
+      if(time_reached(serial_debounce)){
+        mensagem_serial(ssd);
+        sleep_ms(300);
+      }
+    }
+    ssd1306_fill(ssd,false); //Limpa display
+    ssd1306_rect(ssd,3,3,122,58,true,false); //Desenha retângulo
+    ssd1306_send_data(ssd);
+  }
 }
 
 void init_i2c_pins(uint8_t sda, uint8_t scl){
