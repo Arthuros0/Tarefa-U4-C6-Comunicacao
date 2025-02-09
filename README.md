@@ -1,4 +1,4 @@
-# Tarefa: Comunicação Serial com RP2040
+# Tarefa: Interfaces de comunicação com RP2040
 
 Esta projeto implementa comunicação serial usando UART e I2C no RP2040 com a placa BitDogLab, incluindo controle de LEDs e interação com botões.
 
@@ -12,6 +12,13 @@ Esta projeto implementa comunicação serial usando UART e I2C no RP2040 com a p
   - **Botão B:** Alterna LED Azul e exibe mensagem no display e Serial Monitor.
 - Implementação de interrupções para leitura dos botões.
 - Implementação de debouncing via software.
+
+  ## **Vídeo de Demonstração do Projeto**
+Confira a demonstração da tarefa clicando no ícone abaixo:
+
+<a href="https://youtube.com/shorts/dcBtznnSRmA">
+  <img src="https://img.icons8.com/color/48/000000/youtube-play.png" alt="YouTube" />
+</a>
 
 ## 🛠️ Componentes Utilizados
 
